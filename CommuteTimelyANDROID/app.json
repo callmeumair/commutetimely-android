@@ -24,6 +24,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4d4df137-490c-43fb-877d-944b58f16ddd"
+      }
+    },
+    "owner": "umerp"
   }
 }
