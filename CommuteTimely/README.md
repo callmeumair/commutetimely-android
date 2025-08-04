@@ -1,131 +1,50 @@
-# CommuteTimely
+# Welcome to your Expo app 👋
 
-A React Native app built with Expo that helps you plan your commute by calculating the optimal time to leave for your destination.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Features
+## Get started
 
-- **Home Screen**: Welcome screen with app introduction and "Get Started" button
-- **Planner Screen**: Form to input commute details including:
-  - Commute mode (Walk, Drive, Bus, Train)
-  - Start location
-  - Destination
-  - Arrival time
-- **Result Screen**: Displays calculated leave time with helpful tips
+1. Install dependencies
 
-## Tech Stack
+   ```bash
+   npm install
+   ```
 
-- **React Native** with **Expo**
-- **TypeScript** for type safety
-- **React Navigation** for screen navigation
-- **NativeWind** (Tailwind CSS for React Native) for styling
-- **Custom Components** for reusability
+2. Start the app
 
-## Mock Data
+   ```bash
+   npx expo start
+   ```
 
-The app currently uses mocked commute duration estimates:
-- Walk: 15 minutes
-- Drive: 10 minutes
-- Bus: 25 minutes
-- Train: 20 minutes
+In the output, you'll find options to open the app in a
 
-## Getting Started
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-### Prerequisites
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-- Node.js (v16 or higher)
-- npm or yarn
-- Expo CLI (`npm install -g @expo/cli`)
+## Get a fresh project
 
-### Installation
+When you're ready, run:
 
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd CommuteTimely
+npm run reset-project
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-3. Start the development server:
-```bash
-npm start
-```
+## Learn more
 
-### Running the App
+To learn more about developing your project with Expo, look at the following resources:
 
-- **iOS Simulator**: Press `i` in the terminal or scan the QR code with Expo Go app
-- **Android Emulator**: Press `a` in the terminal or scan the QR code with Expo Go app
-- **Web**: Press `w` in the terminal to open in web browser
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## Project Structure
+## Join the community
 
-```
-CommuteTimely/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── Button.tsx
-│   │   ├── Input.tsx
-│   │   ├── Dropdown.tsx
-│   │   └── TimePicker.tsx
-│   ├── screens/            # Screen components
-│   │   ├── HomeScreen.tsx
-│   │   ├── PlannerScreen.tsx
-│   │   └── ResultScreen.tsx
-│   ├── types/              # TypeScript type definitions
-│   │   ├── index.ts
-│   │   └── nativewind.d.ts
-│   └── utils/              # Utility functions
-│       └── estimateLeaveTime.ts
-├── App.tsx                 # Main app component
-├── babel.config.js         # Babel configuration
-├── tailwind.config.js      # Tailwind CSS configuration
-├── global.css              # Global styles
-└── package.json
-```
+Join our community of developers creating universal apps.
 
-## Components
-
-### Button
-A reusable button component with different variants (primary/secondary) and sizes.
-
-### Input
-A styled text input component with label and error handling.
-
-### Dropdown
-A custom dropdown component for selecting commute modes.
-
-### TimePicker
-A custom time picker component with hours, minutes, and AM/PM selection.
-
-## Navigation
-
-The app uses React Navigation with a stack navigator:
-- **Home** → **Planner** → **Result**
-
-## Styling
-
-The app uses NativeWind (Tailwind CSS for React Native) for consistent styling across all components.
-
-## Future Enhancements
-
-- Real-time traffic integration
-- Google Places Autocomplete for locations
-- Weather integration for more accurate estimates
-- Save favorite routes
-- Push notifications for leave reminders
-- Multiple commute options comparison
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License. 
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
