@@ -1,126 +1,282 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, Alert } from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList, CommuteMode, Location } from '../types';
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { Dropdown } from '../components/Dropdown';
-import { TimePicker } from '../components/TimePicker';
-import { estimateLeaveTime } from '../utils/estimateLeaveTime';
-
-type PlannerScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Planner'>;
+import { View, Text, ScrollView, Alert } from 'react-native';
+import { MotiView } from 'moti';
+import { AnimatedButton } from '../components/AnimatedButton';
+import { AnimatedInput } from '../components/AnimatedInput';
+import { CommuteModeSelector } from '../components/CommuteModeSelector';
+import { AnimatedTimePicker } from '../components/AnimatedTimePicker';
+import { COLORS, FONT_SIZES, SPACING, BORDER_RADIUS, SHADOWS } from '../constants';
+import { CommuteMode, Location, LeaveTimeResult } from '../types';
+import { estimateLeaveTime, validateFormData } from '../utils/estimateLeaveTime';
 
 interface PlannerScreenProps {
-  navigation: PlannerScreenNavigationProp;
+  onCalculate: (result: LeaveTimeResult) => void;
 }
 
-export const PlannerScreen: React.FC<PlannerScreenProps> = ({ navigation }) => {
-  const [commuteMode, setCommuteMode] = useState<CommuteMode | null>(null);
-  const [startLocation, setStartLocation] = useState<Location>({ name: '' });
-  const [destinationLocation, setDestinationLocation] = useState<Location>({ name: '' });
-  const [arrivalTime, setArrivalTime] = useState<Date | null>(null);
+export const PlannerScreen: React.FC<PlannerScreenProps> = ({ onCalculate }) => {
+  const [formData, setFormData] = useState({
+    commuteMode: null as CommuteMode | null,
+    startLocation: null as Location | null,
+    destinationLocation: null as Location | null,
+    arrivalTime: null as Date | null,
+  });
 
-  const commuteOptions: CommuteMode[] = ['Walk', 'Drive', 'Bus', 'Train'];
+  const [errors, setErrors] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCalculate = () => {
-    // Validate form
-    if (!commuteMode) {
-      Alert.alert('Error', 'Please select a commute mode');
-      return;
-    }
-
-    if (!startLocation.name.trim()) {
-      Alert.alert('Error', 'Please enter a start location');
-      return;
-    }
-
-    if (!destinationLocation.name.trim()) {
-      Alert.alert('Error', 'Please enter a destination');
-      return;
-    }
-
-    if (!arrivalTime) {
-      Alert.alert('Error', 'Please select an arrival time');
-      return;
-    }
-
-    // Calculate leave time
-    const result = estimateLeaveTime(arrivalTime, commuteMode);
-
-    // Navigate to result screen
-    navigation.navigate('Result', { result });
+  const handleModeSelect = (mode: CommuteMode) => {
+    setFormData(prev => ({ ...prev, commuteMode: mode }));
+    setErrors([]);
   };
 
+  const handleStartLocationChange = (text: string) => {
+    setFormData(prev => ({
+      ...prev,
+      startLocation: { id: 'start', name: text }
+    }));
+    setErrors([]);
+  };
+
+  const handleDestinationChange = (text: string) => {
+    setFormData(prev => ({
+      ...prev,
+      destinationLocation: { id: 'destination', name: text }
+    }));
+    setErrors([]);
+  };
+
+  const handleArrivalTimeChange = (date: Date) => {
+    setFormData(prev => ({ ...prev, arrivalTime: date }));
+    setErrors([]);
+  };
+
+  const handleCalculate = async () => {
+    const validation = validateFormData(formData);
+    
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const result = estimateLeaveTime(
+        formData.arrivalTime!,
+        formData.commuteMode!,
+        formData.startLocation!,
+        formData.destinationLocation!
+      );
+
+      onCalculate(result);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to calculate commute time. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isFormValid = formData.commuteMode && 
+    formData.startLocation?.name && 
+    formData.destinationLocation?.name && 
+    formData.arrivalTime;
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1 px-6 py-6">
+    <ScrollView
+      style={{ flex: 1, backgroundColor: COLORS.gray[50] }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={{ padding: SPACING.xl }}>
         {/* Header */}
-        <View className="mb-8">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">
+        <MotiView
+          from={{ opacity: 0, translateY: -30 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 15, stiffness: 100 }}
+          style={{ marginBottom: SPACING.xl }}
+        >
+          <Text
+            style={{
+              fontSize: FONT_SIZES['3xl'],
+              fontWeight: 'bold',
+              color: COLORS.secondary[800],
+              textAlign: 'center',
+              marginBottom: SPACING.sm,
+            }}
+          >
             Plan Your Commute
           </Text>
-          <Text className="text-gray-600 text-base">
-            Enter your details to calculate the perfect leave time
+          <Text
+            style={{
+              fontSize: FONT_SIZES.lg,
+              color: COLORS.secondary[600],
+              textAlign: 'center',
+              lineHeight: 24,
+            }}
+          >
+            Tell us how you want to travel and when you need to arrive
           </Text>
-        </View>
+        </MotiView>
 
-        {/* Form */}
-        <View className="bg-white rounded-xl p-6 shadow-sm">
-          {/* Commute Mode */}
-          <Dropdown
-            label="Commute Mode"
-            value={commuteMode}
-            onValueChange={setCommuteMode}
-            options={commuteOptions}
-            placeholder="Select your commute mode"
+        {/* Commute Mode Selector */}
+        <MotiView
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 200 }}
+          style={{ marginBottom: SPACING.xl }}
+        >
+          <CommuteModeSelector
+            selectedMode={formData.commuteMode}
+            onSelectMode={handleModeSelect}
+            disabled={isLoading}
           />
+        </MotiView>
 
-          {/* Start Location */}
-          <Input
+        {/* Location Inputs */}
+        <MotiView
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 400 }}
+          style={{ marginBottom: SPACING.xl }}
+        >
+          <AnimatedInput
             label="Start Location"
-            placeholder="Enter your starting point"
-            value={startLocation.name}
-            onChangeText={(text) => setStartLocation({ name: text })}
+            placeholder="Where are you starting from?"
+            value={formData.startLocation?.name || ''}
+            onChangeText={handleStartLocationChange}
+            showAutocomplete={true}
+            disabled={isLoading}
+            icon={<Text style={{ fontSize: 20 }}>📍</Text>}
           />
 
-          {/* Destination */}
-          <Input
+          <AnimatedInput
             label="Destination"
-            placeholder="Enter your destination"
-            value={destinationLocation.name}
-            onChangeText={(text) => setDestinationLocation({ name: text })}
+            placeholder="Where are you going?"
+            value={formData.destinationLocation?.name || ''}
+            onChangeText={handleDestinationChange}
+            showAutocomplete={true}
+            disabled={isLoading}
+            icon={<Text style={{ fontSize: 20 }}>🎯</Text>}
           />
+        </MotiView>
 
-          {/* Arrival Time */}
-          <TimePicker
+        {/* Arrival Time Picker */}
+        <MotiView
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 600 }}
+          style={{ marginBottom: SPACING.xl }}
+        >
+          <AnimatedTimePicker
             label="Arrival Time"
-            value={arrivalTime}
-            onValueChange={setArrivalTime}
-            placeholder="Select when you want to arrive"
+            value={formData.arrivalTime}
+            onValueChange={handleArrivalTimeChange}
+            disabled={isLoading}
           />
+        </MotiView>
 
-          {/* Calculate Button */}
-          <View className="mt-6">
-            <Button
-              title="Calculate Leave Time"
-              size="large"
-              onPress={handleCalculate}
-              style={{ width: '100%' }}
-            />
+        {/* Error Messages */}
+        {errors.length > 0 && (
+          <MotiView
+            from={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', damping: 15, stiffness: 100 }}
+            style={{
+              backgroundColor: COLORS.warning[50],
+              borderWidth: 1,
+              borderColor: COLORS.warning[200],
+              borderRadius: BORDER_RADIUS.lg,
+              padding: SPACING.md,
+              marginBottom: SPACING.lg,
+            }}
+          >
+            {errors.map((error, index) => (
+              <Text
+                key={index}
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  color: COLORS.warning[700],
+                  marginBottom: index < errors.length - 1 ? SPACING.xs : 0,
+                }}
+              >
+                • {error}
+              </Text>
+            ))}
+          </MotiView>
+        )}
+
+        {/* Calculate Button */}
+        <MotiView
+          from={{ opacity: 0, translateY: 30 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 800 }}
+        >
+          <AnimatedButton
+            title="Calculate Leave Time"
+            onPress={handleCalculate}
+            loading={isLoading}
+            disabled={!isFormValid || isLoading}
+            size="lg"
+            style={{ marginBottom: SPACING.lg }}
+          />
+        </MotiView>
+
+        {/* Tips Section */}
+        <MotiView
+          from={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 1000 }}
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: BORDER_RADIUS.xl,
+            padding: SPACING.lg,
+            ...SHADOWS.md,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: FONT_SIZES.lg,
+              fontWeight: '600',
+              color: COLORS.secondary[800],
+              marginBottom: SPACING.md,
+            }}
+          >
+            💡 Pro Tips
+          </Text>
+          
+          <View style={{ gap: SPACING.sm }}>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.sm,
+                color: COLORS.secondary[600],
+                lineHeight: 20,
+              }}
+            >
+              • Add 5-10 minutes buffer for unexpected delays
+            </Text>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.sm,
+                color: COLORS.secondary[600],
+                lineHeight: 20,
+              }}
+            >
+              • Rush hour times (7-9 AM, 5-7 PM) may take longer
+            </Text>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.sm,
+                color: COLORS.secondary[600],
+                lineHeight: 20,
+              }}
+            >
+              • Check weather conditions for walking/cycling
+            </Text>
           </View>
-        </View>
-
-        {/* Info Section */}
-        <View className="mt-8 bg-blue-50 rounded-xl p-6">
-          <Text className="text-lg font-semibold text-blue-900 mb-2">
-            How it works
-          </Text>
-          <Text className="text-blue-800 text-base leading-6">
-            We calculate the optimal time to leave based on your commute mode and typical travel times. 
-            The estimates are based on average conditions and may vary based on traffic, weather, and other factors.
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </MotiView>
+      </View>
+    </ScrollView>
   );
 }; 
