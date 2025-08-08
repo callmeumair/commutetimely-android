@@ -1,6 +1,11 @@
 <resources>
-  <string name="app_name">commutetimely</string>
-  <string name="expo_system_ui_user_interface_style" translatable="false">automatic</string>
-  <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
-  <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+    <string name="app_name">CommuteTimely</string>
+    <string name="get_started">Get Started</string>
+    <string name="plan_commute">Plan Commute</string>
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="calculate_leave_time">Calculate Leave Time</string>
+    <string name="leave_time_calculated">Leave Time Calculated</string>
+    <string name="plan_another">Plan Another</string>
+    <string name="back_to_home">Back to Home</string>
 </resources>
