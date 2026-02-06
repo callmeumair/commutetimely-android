@@ -20,14 +20,12 @@ class MapboxRepository @Inject constructor(
         profile: String = "driving-traffic"
     ): Result<MapboxApi.DirectionsResponse> {
         return try {
-            val originCoords = "${origin.longitude},${origin.latitude}"
-            val destCoords = "${destination.longitude},${destination.latitude}"
+            val coordinates = "${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}"
             
             val response = mapboxClient.api.getDirections(
                 accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN,
-                origin = originCoords,
-                destination = destCoords,
-                profile = profile
+                profile = profile,
+                coordinates = coordinates
             )
             Result.success(response)
         } catch (e: Exception) {

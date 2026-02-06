@@ -1,16 +1,16 @@
 package com.umerp.commutetimely.data.remote
 
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MapboxApi {
     
-    @GET("directions/v5/mapbox/{profile}")
+    @GET("directions/v5/mapbox/{profile}/{coordinates}")
     suspend fun getDirections(
+        @Path("profile") profile: String,
+        @Path("coordinates") coordinates: String,
         @Query("access_token") accessToken: String,
-        @Query("origin") origin: String,
-        @Query("destination") destination: String,
-        @Query("profile") profile: String = "driving-traffic",
         @Query("annotations") annotations: String = "duration,distance",
         @Query("overview") overview: String = "full",
         @Query("steps") steps: Boolean = true

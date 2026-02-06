@@ -2,7 +2,7 @@ package com.umerp.commutetimely.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.umerp.commutetimely.data.repository.SupabaseRepository
+import com.umerp.commutetimely.data.repository.CommuteRepository
 import com.umerp.commutetimely.domain.model.UserProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val supabaseRepository: SupabaseRepository
+    private val commuteRepository: CommuteRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -24,27 +24,32 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun checkAuthStatus() {
+        val isAuthenticated = commuteRepository.isAuthenticated()
         _uiState.value = _uiState.value.copy(
-            isAuthenticated = supabaseRepository.isAuthenticated()
+            isAuthenticated = isAuthenticated
         )
+        
+        if (isAuthenticated) {
+            viewModelScope.launch {
+                commuteRepository.getUserProfile().onSuccess { userProfile ->
+                    _uiState.value = _uiState.value.copy(user = userProfile)
+                }
+            }
+        }
     }
 
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val result = supabaseRepository.signIn(email, password)
+                val result = commuteRepository.signIn(email, password)
                 result.fold(
-                    onSuccess = { response ->
+                    onSuccess = { userProfile ->
                         _uiState.value = _uiState.value.copy(
                             isAuthenticated = true,
                             isLoading = false,
                             error = null,
-                            user = UserProfile(
-                                id = response.user.id,
-                                email = response.user.email,
-                                name = null
-                            )
+                            user = userProfile
                         )
                     },
                     onFailure = { exception ->
@@ -67,17 +72,14 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val result = supabaseRepository.signUp(email, password)
+                val result = commuteRepository.signUp(email, password)
                 result.fold(
-                    onSuccess = { response ->
+                    onSuccess = { userProfile ->
                         _uiState.value = _uiState.value.copy(
+                            isAuthenticated = true,
                             isLoading = false,
                             error = null,
-                            user = UserProfile(
-                                id = response.user.id,
-                                email = response.user.email,
-                                name = null
-                            )
+                            user = userProfile
                         )
                     },
                     onFailure = { exception ->
@@ -98,7 +100,7 @@ class AuthViewModel @Inject constructor(
 
     fun signOut() {
         viewModelScope.launch {
-            supabaseRepository.signOut()
+            commuteRepository.signOut()
             _uiState.value = _uiState.value.copy(
                 isAuthenticated = false,
                 user = null

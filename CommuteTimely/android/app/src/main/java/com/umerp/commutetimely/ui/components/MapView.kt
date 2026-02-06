@@ -12,6 +12,7 @@ import com.mapbox.maps.Style
 @Composable
 fun MapView(
     modifier: Modifier = Modifier,
+    styleUrl: String = Style.MAPBOX_STREETS,
     onMapReady: (MapView) -> Unit = {},
     onMapClick: ((Double, Double) -> Unit)? = null
 ) {
@@ -19,7 +20,7 @@ fun MapView(
     
     val mapView = remember {
         MapView(context).apply {
-            getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS) { style ->
+            getMapboxMap().loadStyleUri(styleUrl) { style ->
                 // Style loaded
             }
         }

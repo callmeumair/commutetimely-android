@@ -3,6 +3,9 @@ package com.umerp.commutetimely.ui.navigation
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.umerp.commutetimely.domain.model.LeaveTimeResult
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.net.URLEncoder
 
 sealed class Screen(val route: String) {
     object Landing : Screen("landing")
@@ -15,8 +18,9 @@ sealed class Screen(val route: String) {
         )
         
         fun createRoute(result: LeaveTimeResult): String {
-            // TODO: Implement proper serialization
-            return "result/$result"
+            val json = Json.encodeToString(result)
+            val encodedJson = URLEncoder.encode(json, "UTF-8")
+            return "result/$encodedJson"
         }
     }
     object Home : Screen("home")

@@ -9,6 +9,10 @@ import com.umerp.commutetimely.ui.screens.landing.LandingScreen
 import com.umerp.commutetimely.ui.screens.planner.PlannerScreen
 import com.umerp.commutetimely.ui.screens.result.ResultScreen
 import com.umerp.commutetimely.ui.screens.settings.SettingsScreen
+import com.umerp.commutetimely.ui.screens.MainScreen
+
+import com.umerp.commutetimely.domain.model.LeaveTimeResult
+import kotlinx.serialization.json.Json
 
 @Composable
 fun CommuteTimelyNavigation() {
@@ -18,57 +22,49 @@ fun CommuteTimelyNavigation() {
         navController = navController,
         startDestination = Screen.Landing.route
     ) {
+        // ... (Landing and main composables remain same)
         composable(Screen.Landing.route) {
             LandingScreen(
                 onGetStarted = {
-                    navController.navigate(Screen.Planner.route)
+                    navController.navigate("main") {
+                        popUpTo(Screen.Landing.route) { inclusive = true }
+                    }
                 }
             )
         }
 
-        composable(Screen.Planner.route) {
-            PlannerScreen(
+        composable("main") {
+            MainScreen(
                 onCalculate = { result ->
                     navController.navigate(Screen.Result.createRoute(result))
                 }
             )
         }
 
+        // Result Screen (Pushed on top of tabs)
         composable(
             route = Screen.Result.route,
             arguments = Screen.Result.arguments
-        ) {
-            ResultScreen(
-                onPlanAnother = {
-                    navController.navigate(Screen.Planner.route) {
-                        popUpTo(Screen.Planner.route) { inclusive = true }
-                    }
-                },
-                onBackToHome = {
-                    navController.navigate(Screen.Landing.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
-            )
-        }
+        ) { backStackEntry ->
+            val resultJson = backStackEntry.arguments?.getString("result") ?: ""
+            val result = try {
+                Json.decodeFromString<LeaveTimeResult>(resultJson)
+            } catch (e: Exception) {
+                null
+            }
 
-        composable(Screen.Home.route) {
-            HomeScreen(
-                onNavigateToPlanner = {
-                    navController.navigate(Screen.Planner.route)
-                },
-                onNavigateToSettings = {
-                    navController.navigate(Screen.Settings.route)
-                }
-            )
-        }
-
-        composable(Screen.Settings.route) {
-            SettingsScreen(
-                onBack = {
-                    navController.popBackStack()
-                }
-            )
+            if (result != null) {
+                ResultScreen(
+                    result = result,
+                    onPlanAnother = {
+                        navController.popBackStack()
+                    },
+                    onBackToHome = {
+                        // Pop back to the main screen, but ensure we go to the Trips tab
+                        navController.popBackStack("main", inclusive = false)
+                    }
+                )
+            }
         }
     }
 }

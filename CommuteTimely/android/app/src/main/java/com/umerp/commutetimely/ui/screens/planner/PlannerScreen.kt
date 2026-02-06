@@ -15,6 +15,12 @@ import com.umerp.commutetimely.domain.model.LeaveTimeResult
 import com.umerp.commutetimely.domain.model.Location
 import com.umerp.commutetimely.ui.components.MapView
 import com.umerp.commutetimely.ui.viewmodels.MapViewModel
+import com.umerp.commutetimely.ui.components.LocationAutocomplete
+
+private enum class ActiveField {
+    START,
+    DESTINATION
+}
 
 @Composable
 fun PlannerScreen(
@@ -40,69 +46,66 @@ fun PlannerScreen(
         
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Start Location Search
-        OutlinedTextField(
-            value = startSearchQuery,
-            onValueChange = { 
-                startSearchQuery = it
-                if (it.length > 2) {
-                    mapViewModel.searchLocation(it)
+        // Active Field Component State
+        var activeField by remember { mutableStateOf<ActiveField?>(null) }
+
+        // Start Location Autocomplete
+        LocationAutocomplete(
+            query = startSearchQuery,
+            onQueryChange = { query ->
+                startSearchQuery = query
+                if (query.length > 2) {
+                    activeField = ActiveField.START
+                    mapViewModel.searchLocation(query)
+                } else if (query.isEmpty()) {
+                    mapViewModel.clearSearchResults()
+                    startLocation = null
                 }
             },
-            label = { Text("Start Location") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Start Location Results
-        if (mapState.searchResults.isNotEmpty() && startSearchQuery.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier.height(200.dp)
-            ) {
-                items(mapState.searchResults) { location ->
-                    ListItem(
-                        headlineContent = { Text(location.name) },
-                        modifier = Modifier.clickable {
-                            startLocation = location
-                            startSearchQuery = location.name
-                            mapViewModel.clearSearchResults()
-                        }
-                    )
-                }
+            searchResults = if (activeField == ActiveField.START) mapState.searchResults else emptyList(),
+            onLocationSelected = { location ->
+                startLocation = location
+                startSearchQuery = location.name
+                mapViewModel.clearSearchResults()
+                activeField = null
+            },
+            label = "Start Location",
+            modifier = Modifier.fillMaxWidth(),
+            active = activeField == ActiveField.START,
+            onActiveChange = { isActive ->
+                if (isActive) activeField = ActiveField.START
             }
-        }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Destination Location Search
-        OutlinedTextField(
-            value = destSearchQuery,
-            onValueChange = { 
-                destSearchQuery = it
-                if (it.length > 2) {
-                    mapViewModel.searchLocation(it)
+        // Destination Location Autocomplete
+        LocationAutocomplete(
+            query = destSearchQuery,
+            onQueryChange = { query ->
+                destSearchQuery = query
+                if (query.length > 2) {
+                    activeField = ActiveField.DESTINATION
+                    mapViewModel.searchLocation(query)
+                } else if (query.isEmpty()) {
+                    mapViewModel.clearSearchResults()
+                    destinationLocation = null
                 }
             },
-            label = { Text("Destination") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Destination Location Results
-        if (mapState.searchResults.isNotEmpty() && destSearchQuery.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier.height(200.dp)
-            ) {
-                items(mapState.searchResults) { location ->
-                    ListItem(
-                        headlineContent = { Text(location.name) },
-                        modifier = Modifier.clickable {
-                            destinationLocation = location
-                            destSearchQuery = location.name
-                            mapViewModel.clearSearchResults()
-                        }
-                    )
-                }
+            searchResults = if (activeField == ActiveField.DESTINATION) mapState.searchResults else emptyList(),
+            onLocationSelected = { location ->
+                destinationLocation = location
+                destSearchQuery = location.name
+                mapViewModel.clearSearchResults()
+                activeField = null
+            },
+            label = "Destination",
+            modifier = Modifier.fillMaxWidth(),
+            active = activeField == ActiveField.DESTINATION,
+            onActiveChange = { isActive ->
+                if (isActive) activeField = ActiveField.DESTINATION
             }
-        }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -136,25 +139,36 @@ fun PlannerScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Initializing result observation
+        LaunchedEffect(mapState.calculationResult) {
+            mapState.calculationResult?.let { result ->
+                onCalculate(result)
+            }
+        }
+
         // Calculate Button
         Button(
             onClick = {
                 if (startLocation != null && destinationLocation != null) {
-                    val mockResult = LeaveTimeResult(
-                        arrivalTime = "09:00",
-                        leaveTime = "08:30",
-                        commuteMode = selectedMode,
-                        duration = 30,
-                        startLocation = startLocation!!,
-                        destinationLocation = destinationLocation!!
+                    mapViewModel.calculateCommute(
+                        origin = startLocation!!,
+                        destination = destinationLocation!!,
+                        arrivalTime = "09:00", // Defaulting to 9 AM for prototype
+                        mode = selectedMode
                     )
-                    onCalculate(mockResult)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = startLocation != null && destinationLocation != null
+            enabled = startLocation != null && destinationLocation != null && !mapState.isLoading
         ) {
-            Text("Calculate Leave Time")
+            if (mapState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text("Calculate Leave Time")
+            }
         }
 
         if (mapState.isLoading) {
