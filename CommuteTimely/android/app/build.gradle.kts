@@ -32,9 +32,13 @@ android {
             properties.load(localPropertiesFile.inputStream())
         }
 
-        buildConfigField("String", "SUPABASE_URL", "\"${properties.getProperty("SUPABASE_URL", "")}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${properties.getProperty("SUPABASE_ANON_KEY", "")}\"")
-        buildConfigField("String", "MAPBOX_ACCESS_TOKEN", "\"${properties.getProperty("MAPBOX_ACCESS_TOKEN", "")}\"")
+        val supabaseUrl = System.getenv("SUPABASE_URL") ?: properties.getProperty("SUPABASE_URL", "")
+        val supabaseAnonKey = System.getenv("SUPABASE_ANON_KEY") ?: properties.getProperty("SUPABASE_ANON_KEY", "")
+        val mapboxToken = System.getenv("MAPBOX_ACCESS_TOKEN") ?: properties.getProperty("MAPBOX_ACCESS_TOKEN", "")
+
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
+        buildConfigField("String", "MAPBOX_ACCESS_TOKEN", "\"$mapboxToken\"")
     }
 
     buildTypes {

@@ -8,11 +8,17 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "MAPBOX_DOWNLOADS_TOKEN": "sk.eyJ1IjoiY29tbXV0ZXRpbWVseSIsImEiOiJjbWUzM2VueXAwMmttMmtxemhvN3Z1c2phIn0.90AmMm2Pv6VXqkvdi7fL5A",
+        "MAPBOX_ACCESS_TOKEN": "sk.eyJ1IjoiY29tbXV0ZXRpbWVseSIsImEiOiJjbWUzM2VueXAwMmttMmtxemhvN3Z1c2phIn0.90AmMm2Pv6VXqkvdi7fL5A",
+        "SUPABASE_URL": "https://your-project.supabase.co",
+        "SUPABASE_ANON_KEY": "your_supabase_anon_key_here"
+      }
     },
     "production": {}
   },
   "submit": {
     "production": {}
   }
-} 
+}
