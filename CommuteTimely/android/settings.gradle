@@ -15,10 +15,10 @@ dependencyResolutionManagement {
             url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
             credentials {
                 username = "mapbox"
-                val properties = java.util.Properties()
-                val localPropertiesFile = File(rootDir, "local.properties")
+                def properties = new Properties()
+                def localPropertiesFile = new File(rootDir, "local.properties")
                 if (localPropertiesFile.exists()) {
-                    localPropertiesFile.inputStream().use { properties.load(it) }
+                    localPropertiesFile.withInputStream { properties.load(it) }
                 }
                 password = System.getenv("MAPBOX_DOWNLOADS_TOKEN") ?: properties.getProperty("MAPBOX_DOWNLOADS_TOKEN") ?: ""
             }
